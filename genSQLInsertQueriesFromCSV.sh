@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # --- Configuración por flags ---
+DELIMITER=',' # Establecer el delimitador por defecto
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --FILE)
@@ -33,7 +34,6 @@ if [[ -z "$FILE" || -z "$OUT" || -z "$TABLE" ]]; then
 fi
 
 # --- Fin Configuración por flags ---
-# ...existing code...
 
 # Leer la cabecera (primera línea)
 header_line=$(head -n 1 "$FILE")
@@ -43,7 +43,7 @@ header_line=$(head -n 1 "$FILE")
 # y envuélvelo entre paréntesis.
 # Se usan comillas dobles por si los nombres de columna contienen espacios o son palabras reservadas.
 IFS="$DELIMITER" read -r -a headers <<< "$header_line"
-column_names_sql=$(printf ', "%s"' "${headers[@]}")
+column_names_sql=$(printf ', %s' "${headers[@]}")
 column_names_sql="(${column_names_sql:2})" # Elimina la coma y espacio iniciales
 
 # Crear/Vaciar el archivo SQL de salida y añadir un comentario inicial
@@ -70,7 +70,7 @@ tail -n +2 "$FILE" | while IFS= read -r line || [[ -n "$line" ]]; do
     values_sql="(${values_sql:2})" # Elimina la coma y espacio iniciales
 
     # Escribir la sentencia INSERT completa en el archivo SQL
-    echo "INSERT INTO \"$TABLE\" $column_names_sql VALUES $values_sql;" >> "$OUT"
+    echo "INSERT INTO $TABLE $column_names_sql VALUES $values_sql;" >> "$OUT"
 
 done
 
